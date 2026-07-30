@@ -15,9 +15,4 @@ app.add_handler(CallbackQueryHandler(mybots_handler, pattern="my_bots"))
 app.add_handler(CallbackQueryHandler(settings_handler, pattern="settings"))
 app.add_handler(CallbackQueryHandler(update_bot_handler, pattern="update_bot"))
 app.add_handler(CallbackQueryHandler(logs_handler, pattern="logs"))
-
 app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_token))
-
-# اجرای اصلی ربات
-if __name__ == "__main__":
-    app.run_polling()
