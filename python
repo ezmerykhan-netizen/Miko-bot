@@ -1,0 +1,126 @@
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters
+)
+from telegram import Update
+
+BOT_TOKEN = "توکن_ربات_مدیر_اینجا"
+OWNER_ID = 8255361263
+
+# دیتابیس ساده داخل حافظه
+bots = {}  # name -> {token, is_premium}
+
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "سلام زهرا ❤️\n"
+        "من ربات‌ساز حرفه‌ای هستم، مثل Railway برای ربات‌هات."
+    )
+
+
+async def createbot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != OWNER_ID:
+        return await update.message.reply_text("فقط سازنده اجازه ساخت دارد 🚫")
+
+    await update.message.reply_text("توکن ربات جدید را بفرست:")
+    context.user_data["step"] = "await_token"
+
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    step = context.user_data.get("step")
+
+    if step == "await_token":
+        context.user_data["token"] = update.message.text
+        await update.message.reply_text("اسم ربات را بفرست:")
+        context.user_data["step"] = "await_name"
+
+    elif step == "await_name":
+        name = update.message.text
+        token = context.user_data["token"]
+
+        bots[name] = {
+            "token": token,
+            "is_premium": False
+        }
+
+        context.user_data.clear()
+
+        await update.message.reply_text(
+            f"ربات «{name}» ساخته شد ✅\n"
+            f"برای دیدن لیست ربات‌ها: /listbots\n"
+            f"برای پولی کردن: /setpremium"
+        )
+
+    else:
+        await update.message.reply_text("در حالت ساخت ربات نیستیم 🙂")
+
+
+async def listbots(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != OWNER_ID:
+        return await update.message.reply_text("فقط سازنده اجازه دارد 🚫")
+
+    if not bots:
+        return await update.message.reply_text("هیچ رباتی ثبت نشده هنوز ❌")
+
+    text = "لیست ربات‌ها:\n\n"
+    for name, info in bots.items():
+        status = "پولی 💰" if info["is_premium"] else "عادی ✅"
+        text += f"- {name} | {status}\n"
+
+    await update.message.reply_text(text)
+
+
+async def deletebot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != OWNER_ID:
+        return await update.message.reply_text("فقط سازنده اجازه دارد 🚫")
+
+    args = context.args
+    if not args:
+        return await update.message.reply_text("اسم رباتی که می‌خوای حذف کنی رو بعد از دستور بنویس:\n/deletebot اسم")
+
+    name = " ".join(args)
+    if name not in bots:
+        return await update.message.reply_text("چنین رباتی ثبت نشده ❌")
+
+    del bots[name]
+    await update.message.reply_text(f"ربات «{name}» حذف شد 🗑️")
+
+
+async def setpremium(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != OWNER_ID:
+        return await update.message.reply_text("فقط سازنده اجازه دارد 🚫")
+
+    args = context.args
+    if len(args) < 2:
+        return await update.message.reply_text(
+            "استفاده:\n/setpremium اسم_ربات بله/خیر"
+        )
+
+    name = args[0]
+    flag = args[1]
+
+    if name not in bots:
+        return await update.message.reply_text("ربات پیدا نشد ❌")
+
+    bots[name]["is_premium"] = (flag == "بله")
+
+    await update.message.reply_text(
+        f"وضعیت پولی ربات «{name}» شد: {'پولی 💰' if flag == 'بله' else 'عادی ✅'}"
+    )
+
+
+app = ApplicationBuilder().token(BOT_TOKEN).build()
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("createbot", createbot))
+app.add_handler(CommandHandler("listbots", listbots))
+app.add_handler(CommandHandler("deletebot", deletebot))
+app.add_handler(CommandHandler("setpremium", setpremium))
+
+app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+
+if __name__ == "__main__":
+    app.run_polling()
