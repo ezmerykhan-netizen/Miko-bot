@@ -20,7 +20,6 @@ async def handle_token(update: Update, context: ContextTypes.DEFAULT_TYPE):
     token = update.message.text
     username = f"bot_{update.effective_user.id}"
 
-    # اینجا فقط توکن را ذخیره می‌کنیم
     session = Session()
     bot = Bot(owner_id=update.effective_user.id, token=token, username=username, status="saved")
     session.add(bot)
