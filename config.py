@@ -1,18 +1,21 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=False)
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
-ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
-CARD_NUMBER = os.getenv("CARD_NUMBER", "")
-CARD_NAME = os.getenv("CARD_NAME", "")
-DB_PATH = os.getenv("DB_PATH", "zara_bot.sqlite3")
-TIMEZONE = os.getenv("TIMEZONE", "Asia/Tehran")
 
-CARD_DELETE_DELAY = 50
+def get_env(key, default=""):
+    return os.environ.get(key, default)
+
+
+BOT_TOKEN = get_env("BOT_TOKEN", "")
+ADMIN_ID = int(get_env("ADMIN_ID", "0") or 0)
+GEMINI_API_KEY = get_env("GEMINI_API_KEY", "")
+GEMINI_MODEL = get_env("GEMINI_MODEL", "gemini-2.5-flash")
+YOUTUBE_API_KEY = get_env("YOUTUBE_API_KEY", "")
+DB_PATH = get_env("DB_PATH", "zara_bot.sqlite3")
+TIMEZONE = get_env("TIMEZONE", "Asia/Tehran")
+
 GEMINI_TYPING_DELAY_MIN = 1.0
 GEMINI_TYPING_DELAY_MAX = 3.0
 SCHEDULER_INTERVAL = 20
