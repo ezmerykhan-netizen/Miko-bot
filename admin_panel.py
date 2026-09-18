@@ -4,7 +4,7 @@ from texts import ADMIN_PANEL_TITLE
 
 
 def admin_keyboard():
-    """پنل شیشه‌ای ادمین — همه دکمه‌ها مرتب و پشت سر هم"""
+    """پنل ادمین شیشه‌ای — همه دکمه‌ها مرتب و پشت سر هم"""
     return InlineKeyboardMarkup([
         # ─── مدیریت فایل ───
         [InlineKeyboardButton("➕ افزودن فایل", callback_data="admin_add_file")],
@@ -24,7 +24,10 @@ def admin_keyboard():
         # ─── زمان‌بندی ───
         [InlineKeyboardButton("⏰ ارسال زمان‌بندی شده", callback_data="admin_schedule")],
 
-        # ─── ابزار ───
+        # ─── تنظیمات ───
+        [InlineKeyboardButton("⚙️ تنظیمات قابلیت‌ها", callback_data="admin_settings")],
+
+        # ─── آمار ───
         [InlineKeyboardButton("📊 آمار ربات", callback_data="admin_stats")],
     ])
 
