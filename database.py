@@ -53,12 +53,50 @@ async def init_db():
             )
         """)
         await db.execute("""
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT
+            )
+        """)
+        await db.execute("""
             CREATE TABLE IF NOT EXISTS fsm_state (
                 user_id INTEGER PRIMARY KEY,
                 state TEXT,
                 data TEXT DEFAULT '{}'
             )
         """)
+        await db.commit()
+
+        # پیش‌فرض‌ها
+        defaults = {
+            "music_enabled": "1",
+            "referral_enabled": "0",
+            "referral_count": "40",
+            "other_bots_enabled": "0",
+            "music_force_join": "0",
+        }
+        for k, v in defaults.items():
+            await db.execute(
+                "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)",
+                (k, v)
+            )
+        await db.commit()
+
+
+# ===== تنظیمات =====
+async def get_setting(key, default=None):
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT value FROM settings WHERE key = ?", (key,)) as cur:
+            row = await cur.fetchone()
+            return row[0] if row else default
+
+
+async def set_setting(key, value):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+            (key, str(value))
+        )
         await db.commit()
 
 
@@ -75,8 +113,7 @@ async def add_user(user_id, username, first_name):
 async def get_all_users():
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute("SELECT user_id FROM users") as cur:
-            rows = await cur.fetchall()
-            return [r[0] for r in rows]
+            return [r[0] for r in await cur.fetchall()]
 
 
 async def get_users_count():
@@ -205,10 +242,7 @@ async def get_all_scheduled():
 
 async def mark_sent(schedule_id):
     async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute(
-            "UPDATE scheduled SET sent = 1 WHERE id = ?",
-            (schedule_id,)
-        )
+        await db.execute("UPDATE scheduled SET sent = 1 WHERE id = ?", (schedule_id,))
         await db.commit()
 
 
