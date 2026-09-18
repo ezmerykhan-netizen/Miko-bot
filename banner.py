@@ -1,10 +1,9 @@
 import asyncio
-from config import CARD_NUMBER, CARD_NAME, CARD_DELETE_DELAY
-from texts import DONATE, CARD_WARNING, AFTER_CARD
 import database as db
 
 
 async def send_banner(context, chat_id):
+    """ارسال بنر پای فایل"""
     banner = await db.get_banner()
     if not banner:
         return
@@ -18,11 +17,12 @@ async def send_banner(context, chat_id):
             await context.bot.send_animation(chat_id, file_id, caption=caption)
         else:
             await context.bot.send_document(chat_id, file_id, caption=caption)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[BANNER] خطا: {e}")
 
 
 async def broadcast_banner(context):
+    """ارسال بنر فوری به همه کاربران"""
     banner = await db.get_banner()
     if not banner:
         return 0
@@ -40,24 +40,7 @@ async def broadcast_banner(context):
             else:
                 await context.bot.send_document(uid, file_id, caption=caption)
             count += 1
-            await asyncio.sleep(0.05)  # rate limit
+            await asyncio.sleep(0.05)
         except Exception:
             continue
     return count
-
-
-async def send_donate_info(context, chat_id):
-    await context.bot.send_message(chat_id, DONATE)
-    msg = await context.bot.send_message(
-        chat_id,
-        f"💳 شماره کارت:\n`{CARD_NUMBER}`\n\n"
-        f"👤 به نام: {CARD_NAME}\n\n"
-        f"{CARD_WARNING}",
-        parse_mode="Markdown"
-    )
-    await asyncio.sleep(CARD_DELETE_DELAY)
-    try:
-        await msg.delete()
-    except Exception:
-        pass
-    await context.bot.send_message(chat_id, AFTER_CARD)
